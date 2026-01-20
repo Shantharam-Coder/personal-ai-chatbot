@@ -1,18 +1,61 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // 1. Import useNavigate
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "../../lib/supabase";
 import "./AuthPage.css";
 
 function AuthPage() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
     const [mode, setMode] = useState("login");
-    const navigate = useNavigate(); // 2. Initialize navigate
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // Here you would normally handle API calls for login/signup
-        console.log("Form submitted");
+    const formKey = location.pathname + mode;
 
-        // 3. Redirect to the landing page
-        navigate("/landing");
+    const resetForm = () => {
+        setEmail("");
+        setPassword("");
+    };
+
+    useEffect(() => {
+        resetForm();
+    }, [location.pathname, mode]);
+
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data }) => {
+            if (data.session) {
+                navigate("/landing", { replace: true });
+            }
+        });
+    }, []);
+
+    const handleLogin = async () => {
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+
+        if (error) {
+            alert(error.message);
+        } else {
+            resetForm();
+            navigate("/landing", { replace: true });
+        }
+    };
+
+    const handleSignup = async () => {
+        const { error } = await supabase.auth.signUp({
+            email,
+            password,
+        });
+
+        if (error) {
+            alert(error.message);
+        } else {
+            resetForm();
+            navigate("/landing", { replace: true });
+        }
     };
 
     return (
@@ -28,16 +71,51 @@ function AuthPage() {
                         : "Sign up to start building your personal AI assistant"}
                 </p>
 
-                {/* 4. Add the onSubmit handler */}
-                <form className="auth-form" onSubmit={handleSubmit}>
+                <form
+                    key={formKey}
+                    className="auth-form"
+                    autoComplete="off"
+                    onSubmit={(e) => e.preventDefault()}
+                >
+                    <input type="text" name="fake-user" style={{ display: "none" }} />
+                    <input
+                        type="password"
+                        name="fake-pass"
+                        style={{ display: "none" }}
+                    />
+
                     {mode === "signup" && (
-                        <input type="text" placeholder="Full Name" className="auth-input" required />
+                        <input
+                            type="text"
+                            placeholder="Full Name"
+                            className="auth-input"
+                            autoComplete="off"
+                        />
                     )}
 
-                    <input type="email" placeholder="Email Address" className="auth-input" required />
-                    <input type="password" placeholder="Password" className="auth-input" required />
+                    <input
+                        type="email"
+                        placeholder="Email Address"
+                        className="auth-input"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        autoComplete="off"
+                    />
 
-                    <button type="submit" className="auth-submit">
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        className="auth-input"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        autoComplete="new-password"
+                    />
+
+                    <button
+                        type="button"
+                        className="auth-submit"
+                        onClick={mode === "login" ? handleLogin : handleSignup}
+                    >
                         {mode === "login" ? "Login" : "Sign Up"}
                     </button>
                 </form>
@@ -46,12 +124,28 @@ function AuthPage() {
                     {mode === "login" ? (
                         <span>
               Don’t have an account?
-              <button type="button" onClick={() => setMode("signup")}> Sign up</button>
+              <button
+                  type="button"
+                  onClick={() => {
+                      resetForm();
+                      setMode("signup");
+                  }}
+              >
+                Sign up
+              </button>
             </span>
                     ) : (
                         <span>
               Already have an account?
-              <button type="button" onClick={() => setMode("login")}> Login</button>
+              <button
+                  type="button"
+                  onClick={() => {
+                      resetForm();
+                      setMode("login");
+                  }}
+              >
+                Login
+              </button>
             </span>
                     )}
                 </div>

@@ -1,25 +1,26 @@
-import "./LandingPage.css";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../../lib/supabase.js";
 
 function LandingPage() {
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();   // 🔥 clears session
+        navigate("/");
+    };
+
     return (
         <div className="landing-container">
-            {/* Navbar */}
             <nav className="landing-navbar">
                 <h1 className="landing-logo">PersonalAI</h1>
-                <button className="landing-logout">Logout</button>
+                <button className="landing-logout" onClick={handleLogout}>
+                    Logout
+                </button>
             </nav>
 
-            {/* Main content */}
             <main className="landing-content">
                 <h2>Your AI, Your Space</h2>
-                <p>
-                    This is your personal AI workspace.
-                    Think, plan, learn, and build — all in one place.
-                </p>
-
-                <button className="start-chat-btn">
-                    Go to Chatbot →
-                </button>
+                <p>Welcome to your personal AI workspace.</p>
             </main>
         </div>
     );

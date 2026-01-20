@@ -8,6 +8,7 @@
   },
   "private": true,
   "dependencies": {
+    "@supabase/supabase-js": "^2.91.0",
     "react-router-dom": "^7.12.0"
   }
 }
